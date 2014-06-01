@@ -1,5 +1,6 @@
 [Service]
-ExecStart=/usr/bin/node /root/node-sample/boot.js
+WorkingDirectory=/root/node-sample
+ExecStart=/usr/bin/node boot.js
 Restart=always
 StandardOutput=syslog
 StandardError=syslog

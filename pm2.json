@@ -1,0 +1,7 @@
+[
+  {
+    "name": "node-sample",
+    "script": "app.js",
+    "env": { "NODE_ENV": "production" }
+  }
+]

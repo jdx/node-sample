@@ -3,50 +3,71 @@ var numCPUs = require('os').cpus().length;
 
 // Defines what each worker needs to run
 // In this case, it's app.js a simple node http app
-cluster.setupMaster({
-  exec: 'app.js'
-});
+cluster.setupMaster({ exec: 'app.js' });
 
-// Fork off a new worker for each of my CPUs
-for (var i = 0; i < numCPUs; i++) { cluster.fork(); }
+// Gets the count of active workers
+function numWorkers() { return Object.keys(cluster.workers).length; }
+
+var stopping = false;
+
+// Forks off a worker for every CPU
+// unless the server is stopping
+function forkNewWorkers() {
+  if (!stopping) {
+    for (var i = numWorkers(); i < numCPUs; i++) { cluster.fork(); }
+  }
+}
 
 // A list of workers queued for a restart
-var workersToKill = [];
+var workersToStop = [];
+
+// Stops a single worker
+// Gives 60 seconds after disconnect before SIGTERM
+function stopWorker(worker) {
+  worker.disconnect();
+  var killTimer = setTimeout(function() {
+    worker.kill();
+  }, 5000);
+
+  // Ensure we don't stay up just for this setTimeout
+  killTimer.unref();
+}
 
 // Tell the next worker queued to restart to disconnect
 // This will allow the process to finish it's work
 // for 60 seconds before sending SIGTERM
-function killNextWorker() {
-  var i = workersToKill.pop();
+function stopNextWorker() {
+  var i = workersToStop.pop();
   var worker = cluster.workers[i];
-  if (worker) {
-    worker.disconnect();
-    setTimeout(function() {
-      worker.kill();
-    }, 60000);
+  if (worker) stopWorker(worker);
+}
+
+// Stops all the works at once
+function stopAllWorkers() {
+  stopping = true;
+  for (var id in cluster.workers) {
+    stopWorker(cluster.workers[id]);
   }
 }
 
 // Worker is now listening on a port
 // Once it is ready, we can signal the next worker to restart
-cluster.on('listening', function(worker) {
-  console.log('worker', worker.process.pid, 'listening');
-  killNextWorker();
-});
+cluster.on('listening', stopNextWorker);
 
 // A worker has disconnected either because the process was killed
-// or we are processing the workersToKill array restarting each process
-// In either case, we will simply boot a new process
-cluster.on('disconnect', function(worker) {
-  console.log('worker', worker.process.pid, 'disconnected');
-  cluster.fork();
-});
+// or we are processing the workersToStop array restarting each process
+// In either case, we will fork any workers needed
+cluster.on('disconnect', forkNewWorkers);
 
 // HUP signal sent to the master process to start restarting all the workers sequentially
 process.on('SIGHUP', function() {
-  console.log('SIGHUP received, reloading workers');
-  workersToKill = Object.keys(cluster.workers); // Populate the array with all the workers we will need to restart
-  killNextWorker();
+  workersToStop = Object.keys(cluster.workers);
+  stopNextWorker();
 });
 
+// Kill all the workers at once
+process.on('SIGTERM', stopAllWorkers);
+
+// Fork off the initial workers
+forkNewWorkers();
 console.log('app master', process.pid, 'booted');

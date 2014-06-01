@@ -1,5 +1,5 @@
 var cluster = require('cluster');
-var numCPUs = require('os').cpus().length;
+var workerCount = 2;
 
 // Defines what each worker needs to run
 // In this case, it's app.js a simple node http app
@@ -10,11 +10,10 @@ function numWorkers() { return Object.keys(cluster.workers).length; }
 
 var stopping = false;
 
-// Forks off a worker for every CPU
-// unless the server is stopping
+// Forks off the workers unless the server is stopping
 function forkNewWorkers() {
   if (!stopping) {
-    for (var i = numWorkers(); i < numCPUs; i++) { cluster.fork(); }
+    for (var i = numWorkers(); i < workerCount; i++) { cluster.fork(); }
   }
 }
 

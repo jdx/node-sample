@@ -1,5 +1,11 @@
+// This script will boot app.js with the number of workers
+// specified in WORKER_COUNT.
+//
+// The master will respond to SIGHUP, which will trigger
+// restarting all the workers and reloading the app.
+
 var cluster = require('cluster');
-var workerCount = 2;
+var workerCount = process.env.WORKER_COUNT || 2;
 
 // Defines what each worker needs to run
 // In this case, it's app.js a simple node http app

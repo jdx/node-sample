@@ -2,6 +2,7 @@
   {
     "name": "node-sample",
     "script": "app.js",
+    "instances": 2,
     "env": { "NODE_ENV": "production" }
   }
 ]

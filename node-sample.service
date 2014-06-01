@@ -1,11 +1,13 @@
 [Service]
-WorkingDirectory=/root/node-sample
+WorkingDirectory=/home/web/node-sample
 ExecStart=/usr/bin/node boot.js
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=node-sample
-Environment='NODE_ENV=production' 'PORT=80'
+User=web
+Group=web
+Environment='NODE_ENV=production'
 
 [Install]
 WantedBy=multi-user.target

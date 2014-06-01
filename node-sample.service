@@ -1,0 +1,10 @@
+[Service]
+ExecStart=/usr/bin/node /root/node-sample/boot.js
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=node-sample
+Environment='NODE_ENV=production' 'PORT=80'
+
+[Install]
+WantedBy=multi-user.target

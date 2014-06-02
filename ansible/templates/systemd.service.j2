@@ -1,6 +1,7 @@
 [Service]
 WorkingDirectory={{project_root}}
 ExecStart=/usr/bin/node boot.js
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 StandardOutput=syslog
 StandardError=syslog

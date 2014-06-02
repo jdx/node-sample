@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+cd ansible
+ansible-playbook -i production deploy.yml

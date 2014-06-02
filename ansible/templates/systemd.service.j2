@@ -1,10 +1,10 @@
 [Service]
-WorkingDirectory=/home/web/node-sample
+WorkingDirectory={{project_root}}
 ExecStart=/usr/bin/node boot.js
 Restart=always
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=node-sample
+SyslogIdentifier={{project_name}}
 User=web
 Group=web
 Environment='NODE_ENV=production'

@@ -1,0 +1,37 @@
+global
+    log         127.0.0.1 local2
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    option  dontlognull
+    option  http-server-close
+    option  forwardfor
+    option  redispatch
+    retries 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+
+frontend  main *:80
+    stats enable
+    stats uri /haproxy?stats
+    stats auth myusername:mypass
+    default_backend app
+
+backend app
+    balance     roundrobin
+{% for host in groups['app'] %}
+    server {{host}} {{host}}:3000 cookie {{host}} check
+{% endfor %}

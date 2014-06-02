@@ -1,0 +1,18 @@
+---
+- hosts: loadbalancer
+
+  tasks:
+    - name: install haproxy
+      yum: name=haproxy state=latest
+      notify: flush iptables
+
+    - name: add haproxy config
+      template: src=templates/haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg backup=yes
+      notify: restart haproxy
+
+  handlers:
+    - name: restart haproxy
+      service: name=haproxy state=restarted
+
+    - name: flush iptables
+      shell: iptables -F
